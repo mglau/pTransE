@@ -5,7 +5,7 @@ import random
 import numpy as np
 import nltk
 from collections import Counter, deque, OrderedDict
-from transe import pTransE
+from ptranse import pTransE
 import re
 import sys
 from sklearn import metrics
