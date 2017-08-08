@@ -16,7 +16,6 @@ class pTransE(object):
         self._build_var()
         self._build_train()
         self._build_anology_predict()
-        print('Building graph done!')
         init_op = tf.global_variables_initializer()
         self._sess.run(init_op)
 
@@ -155,17 +154,11 @@ class pTransE(object):
 
 
     def _build_train(self):
-        print('1')
         t_z_pos, t_z_neg = self._forward_t_model(self._w, self._v, False)
-        print('2')
         at_z_pos, at_z_neg = self._forward_t_model(self._aw, self._av, True)
-        print('3')
         k_z_pos, k_z_h_neg, k_z_t_neg, k_z_r_neg = self._forward_k_model(self._pos_h, self._pos_t, self._pos_r)
-        print('4')
         ak_z_pos, ak_z_h_neg, ak_z_t_neg, ak_z_r_neg = self._forward_k_model(self._pos_ah, self._pos_at, self._pos_ar)
-        print('5')
         nce_loss = self._nce_loss(t_z_pos, t_z_neg, k_z_pos, k_z_h_neg, k_z_t_neg, k_z_r_neg)
-        print('6')
         nce_loss = nce_loss + self._nce_loss(at_z_pos, at_z_neg, ak_z_pos, ak_z_h_neg, ak_z_t_neg, ak_z_r_neg)
         self._train = self._optimize(nce_loss)
         self._loss = nce_loss
@@ -184,9 +177,9 @@ class pTransE(object):
         # Compute cosine distance between each pair of target and vocab.
         # dist has shape [N, vocab_size].
         dist = tf.matmul(target, nemb, transpose_b=True)
-        # For each question (row in dist), find the top 4 words.
-        _, pred_idx = tf.nn.top_k(dist, 4)
-        # [N, 4]
+        # For each question (row in dist), find the top 20 words.
+        _, pred_idx = tf.nn.top_k(dist, 20, True)
+        # [N, 20]
         self._analogy_pred_idx = pred_idx
 
 

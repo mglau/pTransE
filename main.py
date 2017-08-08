@@ -12,9 +12,9 @@ from sklearn import metrics
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-object_file = os.path.join(dir_path, 'dbpedia_data', 'mappingbased_objects_en.ttl')
-corpus_file = os.path.join(dir_path, 'wiki_data', 'wiki2')
-analogy_file = os.path.join(dir_path, 'test_data', 'questions-words.txt')
+object_file = os.path.join(dir_path, 'mappingbased_objects_en.ttl')
+corpus_file = os.path.join(dir_path, 'wiki2')
+analogy_file = os.path.join(dir_path, 'questions-words.txt')
 
 flags = tf.flags
 flags.DEFINE_string("object_file", object_file, "Object facts of DBpedia.")
@@ -325,17 +325,29 @@ with tf.Session() as sess:
             loss = pTransE.batch_fit(h, t, r, w, v, ah, at, ar, aw, av)
         if times % config.statistics_interval == 0:
             print(loss)
-            # # top 4 results
-            # ana_question = np.asarray(ana_question)
-            # start = random.randint(0, q_size - 10)
-            # end = start + 10
-            # a = ana_question[:, 0][start:end]
-            # b = ana_question[:, 1][start:end]
-            # c = ana_question[:, 2][start:end]
-            # d = ana_question[:, 3][start:end]
-            # d_pred = pTransE.analogy(a, b, c)
-            # print(d_pred.shape)
-            # acc = metrics.accuracy_score(d, d_pred[:, 0])
-            # print(acc)
-            # for i in range(10):
-            #     print(id_word[a[i]], id_word[b[i]], id_word[c[i]], id_word[d_pred[:, 0][i]])
+            # top 20 results
+            ana_question = np.asarray(ana_question)
+            q_batch = random.sample(range(0, q_size), 30)
+            a = ana_question[:, 0][q_batch]
+            b = ana_question[:, 1][q_batch]
+            c = ana_question[:, 2][q_batch]
+            d = ana_question[:, 3][q_batch]
+            d_pred = pTransE.analogy(a, b, c)
+            acc = metrics.accuracy_score(d, d_pred[:, 0])
+            print('top1 acc:', acc)
+            acc_count = 0
+            for i in range(10):
+                if d[i] in d_pred[i, :]:
+                  acc_count += 1
+            top20_acc = acc_count / 10
+            print('top20 acc:', top20_acc)
+            for i in range(10):
+                a_word = id_word[a[i]]
+                b_word = id_word[b[i]]
+                c_word = id_word[c[i]]
+                d_word = id_word[d[i]]
+                if d_pred[:, 0][i] in id_word:
+                   pred_d_word = id_word[d_pred[:, 0][i]]
+                else:
+                   pred_d_word = id_entity[d_pred[:, 0][i]]
+                print(a_word, b_word, c_word, 'correct:'+d_word, 'pred:'+pred_d_word)
